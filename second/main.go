@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
@@ -31,6 +32,7 @@ func serverStart() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/getter", getterRoute).Methods(http.MethodPost)
+	router.HandleFunc("/test", testRoute).Methods(http.MethodGet)
 
 	srv := &http.Server{
 		Handler:      router,
@@ -39,6 +41,12 @@ func serverStart() {
 		ReadTimeout:  5 * time.Second,
 	}
 	srv.ListenAndServe()
+}
+
+// тест подключения ко 2 серверу
+func testRoute(w http.ResponseWriter, r *http.Request) {
+	log.Info("test route!")
+	json.NewEncoder(w).Encode("test worked !!!!")
 }
 
 // подключение пути для получения данных с 1 сервера
@@ -53,13 +61,15 @@ func getterRoute(w http.ResponseWriter, r *http.Request) {
 
 	if user.Secure != secureCode {
 		log.Info("wrong secure code !!!")
+		json.NewEncoder(w).Encode("wrong code !!!!")
 	} else {
 		log.Info(user.Name, " ", user.Gender, " ", user.Age)
-	}
+		json.NewEncoder(w).Encode("adding to database !!!!")
 
-	// передача на сервер
-	InsertDocument(&user)
-	log.Info("success add to server")
+		// передача на сервер
+		InsertDocument(&user)
+		log.Info("success add to server")
+	}
 
 }
 
@@ -69,7 +79,7 @@ func migrateStart() {
 	duration := time.Second * 5
 	time.Sleep(duration)
 
-	db := ConnectToDb("postgress.env")
+	db := ConnectToDb("config/postgress.env")
 	defer db.Close()
 
 	if err := goose.SetDialect("postgres"); err != nil {
@@ -91,7 +101,7 @@ func ConnectToDb(path string) *sql.DB {
 
 	envUser := os.Getenv("User")
 	envPass := os.Getenv("Pass")
-	envHost := os.Getenv("Host")
+	envHost := "dbmicro"
 	envPort := os.Getenv("Port")
 	envName := os.Getenv("Name")
 
@@ -110,7 +120,7 @@ func ConnectToDb(path string) *sql.DB {
 // добавление данных
 func InsertDocument(DBmodel *showUser) {
 
-	db := ConnectToDb("postgress.env")
+	db := ConnectToDb("config/postgress.env")
 	defer db.Close()
 
 	_, err := db.Exec("insert into microInteract (name, age, gender) values ($1, $2, $3)", DBmodel.Name, DBmodel.Age, DBmodel.Gender)

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -47,7 +47,8 @@ func sendRoute(w http.ResponseWriter, r *http.Request) {
 
 	// передача данных на второй сервер.
 	log.Info("send data to second server")
-	sendToSecond(&user)
+	temp := sendToSecond(&user)
+	json.NewEncoder(w).Encode(temp)
 
 }
 
@@ -61,9 +62,9 @@ func dataEnrich(curInstance *showUser) {
 }
 
 // отправка данных на второй сервер
-func sendToSecond(curInstance *showUser) {
+func sendToSecond(curInstance *showUser) (result string) {
 
-	baseURL, _ := url.Parse("http://localhost:8112/getter")
+	baseURL, _ := url.Parse("http://secondmicro:8112/getter")
 
 	data := url.Values{
 		"name":     {curInstance.Name},
@@ -76,7 +77,7 @@ func sendToSecond(curInstance *showUser) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	return string(body)
 
 }
 
