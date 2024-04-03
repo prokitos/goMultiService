@@ -1,0 +1,18 @@
+// запуск и взаимодействие микросервисов в разных контейнерах.
+
+// создание общей сети
+docker network create mynetwork	   
+
+// билд первого микросервиса
+docker build -t firstmicro .
+docker run --net=mynetwork --name=firstmicro -p 8111:8111 firstmicro
+
+// билд второго микросервиса. доступа снаружи нет.
+docker build -t secondmicro .
+docker run --net=mynetwork --name=secondmicro -p 8112 secondmicro
+
+// билд базы данных. в строку только на порт 5432. доступа снаружи нет.
+docker run --net=mynetwork --name=dbmicro -p 5432 -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=root -e POSTGRES_DB=postgres -d postgres:13.3
+// или через yml. можно менять порт.
+docker compose -f docker-compose.yml up
+docker network connect mynetwork dbmicro

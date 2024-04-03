@@ -1,17 +1,13 @@
-networks:
-  mynetwork:
-
 services:
   postgresql:
     image: postgres:14-alpine
     container_name: dbmicro
-    ports:
-      - "8113:8113"
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=root
     volumes:
       - ./data:/var/lib/postgresql/data
-    networks:
-      - mynetwork
+    ports:
+    - "8113"
+    command: -p 8113

@@ -67,7 +67,7 @@ func getterRoute(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("adding to database !!!!")
 
 		// передача на сервер
-		InsertDocument(&user)
+		// InsertDocument(&user)
 		log.Info("success add to server")
 	}
 
@@ -101,9 +101,15 @@ func ConnectToDb(path string) *sql.DB {
 
 	envUser := os.Getenv("User")
 	envPass := os.Getenv("Pass")
-	envHost := "dbmicro"
+	envHost := os.Getenv("Host")
 	envPort := os.Getenv("Port")
 	envName := os.Getenv("Name")
+
+	log.Error(envUser)
+	log.Error(envPass)
+	log.Error(envHost)
+	log.Error(envPort)
+	log.Error(envName)
 
 	connStr := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s?sslmode=disable", envUser, envPass, envHost, envPort, envName)
 	db, err := sql.Open("postgres", connStr)
